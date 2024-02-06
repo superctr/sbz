@@ -542,10 +542,6 @@ static inline void generate_output(struct sbz *sbz, uint32_t origin)
 			case S_EXTENDED:
 				push_desc_bit(1, &head, &desc_tail, &bits_left);
 				push_desc_bit(1, &head, &desc_tail, &bits_left);
-
-				//*tail++ = 0x80 + ((offset & 0x3f00) >> 8);
-				//*tail++ = offset & 0xff;
-				//*tail++ = max_copy_e_length - length;
 				*tail++ = 0x80 + (((max_copy_e_length - length) >> 2) ^ (offset & 0x3f));
 				push_desc_word((offset << 2) | ((max_copy_e_length - length) & 3), &desc_tail);
 				break;
@@ -686,7 +682,7 @@ enum sbz_status sbz_dump_nodes(const uint8_t *in_buf, uint32_t in_size, FILE* fi
 
 	return result;
 }
-// Conditional memcpy. Supports overlapping regions
+// Conditional memcpy. Supports overlapping regions if src > dst
 static inline uint32_t my_memcpy(uint8_t *dst, const uint8_t *src, uint32_t size)
 {
 	uint32_t result = 0;
@@ -739,7 +735,6 @@ static inline enum sbz_status decode(const uint8_t *input_buf, uint32_t input_si
 			bits_left = 15;
 		}
 
-		//printf("pop desc bitA %d\n", desc_word >> 15);
 		if(desc_word & 0x8000)
 		{
 			desc_word <<= 1;
@@ -760,7 +755,6 @@ static inline enum sbz_status decode(const uint8_t *input_buf, uint32_t input_si
 			int16_t copy_offset = -1;
 
 			cmd = *input_head++;
-			//printf("pop desc bitB %d\n", desc_word >> 15);
 			if(desc_word & 0x8000)
 			{
 				if(cmd & 0x80)
